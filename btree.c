@@ -4,7 +4,7 @@
 
 #include "btree.h"
 
-btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(void *, void *))
+btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *))
 {
     size_t size = btree_fit_size(item_sz);
     btree *btree = malloc(size);
@@ -63,6 +63,11 @@ static void btree_set_item_at(btree *btree, bnode *node,
 
 const void *btree_insert(btree *btree, const void *item)
 {
+    return btree_insert_int(btree, item);
+}
+
+static void *btree_insert_int(btree *btree, const void *item)
+{
     if (!btree->root)
     {
         btree->root = btree_new_node(btree, true);
@@ -79,12 +84,75 @@ const void *btree_insert(btree *btree, const void *item)
         return NULL;
     }
 
-    btree_set_item_at(btree, btree->root, 1, item);
-    btree->root->nitems++;
-    btree->count++;
-    btree->height++;
+    // TODO: In this case:
+    // 1. We have atleast one node in the tree
+    // 1a. With this insertion, we might need to
+    //     either split the node, or we can just insert.
+    // 2. Split the node if needed -> rotate
+
+    // Start looking from the root.
+    btree_result result = btree_insert_result(btree, btree->root, item, 0);
+    switch (result)
+    {
+    case BTREE_INSERTED:
+        btree->count++;
+        return NULL;
+    default:
+        printf("Failure on result: Should not happen.\n");
+        exit(EXIT_FAILURE);
+    }
 
     return NULL;
+}
+
+static btree_result btree_insert_result(btree *btree, bnode *node, const void *item, int depth)
+{
+    bool found = false;
+    size_t index = btree_search(btree, node, item, depth, &found);
+
+    if (!found)
+    {
+        printf("Not found!\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // TODO: For now just insert the node to the root.
+    btree_set_item_at(btree, node, index, item);
+
+    return BTREE_INSERTED;
+}
+
+static size_t btree_search(btree *btree, bnode *node, const void *item, int depth, bool *found)
+{
+    // *found = true;
+    size_t index = 0;
+    size_t nitems = node->nitems;
+
+    while (index < nitems)
+    {
+        void *node_it = btree_get_item_at((void *)btree, node, index);
+
+        int cmp = btree->comparator((void *)item, node_it);
+        if (cmp < 0) // new item is smaller
+        {
+            printf("can't do that yet...\n");
+            exit(EXIT_FAILURE);
+        }
+        else if (cmp > 0)
+        {
+            *found = true;
+            return index + 1;
+        }
+        else
+        {
+            printf("duplicate value is invalid\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    *found = false;
+
+    return 1;
 }
 
 static void *btree_get_item_at(btree *btree, bnode *node, size_t index)

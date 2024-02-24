@@ -20,7 +20,7 @@ typedef struct
     void *(*remalloc)(size_t);
     void *(*free)(void *);
 
-    int (*comparator)(void *, void *);
+    int (*comparator)(const void *, const void *);
 
     size_t count;     // number of items in the tree
     size_t height;    // height of the tree
@@ -31,7 +31,13 @@ typedef struct
 
 } btree;
 
-btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(void *, void *));
+typedef enum
+{
+    BTREE_INSERTED,
+    BTREE_SPLIT_NEEDED,
+} btree_result;
+
+btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *));
 
 static size_t btree_fit_size(size_t item_sz);
 
@@ -44,6 +50,12 @@ void btree_clear(btree *btree);
 static void *btree_get_item_at(btree *btree, bnode *node, size_t index);
 
 const void *btree_insert(btree *btree, const void *item);
+
+static void *btree_insert_int(btree *btree, const void *item);
+
+static btree_result btree_insert_result(btree *btree, bnode *node, const void *item, int depth);
+
+static size_t btree_search(btree *btree, bnode *node, const void *item, int depth, bool *found);
 
 const void *btree_get(const btree *btree, const void *key, size_t index);
 
