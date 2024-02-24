@@ -45,7 +45,7 @@ static void *btree_get_item_at(btree *btree, bnode *node, size_t index);
 
 const void *btree_insert(btree *btree, const void *item);
 
-const void *btree_get(const btree *btree, const void *key);
+const void *btree_get(const btree *btree, const void *key, size_t index);
 
 const void *btree_min(const btree *btree);
 
