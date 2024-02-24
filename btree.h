@@ -59,7 +59,9 @@ static size_t btree_search(btree *btree, bnode *node, const void *item, int dept
 
 static void btree_shift_items(btree *btree, bnode *node, size_t index);
 
-const void *btree_get(const btree *btree, const void *key, size_t index);
+const void *btree_get(const btree *btree, const void *key);
+
+const void *btree_get_int(const btree *btree, const void *key);
 
 const void *btree_min(const btree *btree);
 

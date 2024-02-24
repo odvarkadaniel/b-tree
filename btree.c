@@ -172,7 +172,20 @@ static void *btree_get_item_at(btree *btree, bnode *node, size_t index)
     return node->items + btree->item_sz * index;
 }
 
-const void *btree_get(const btree *btree, const void *key, size_t index)
+const void *btree_get(const btree *btree, const void *key)
 {
-    return btree_get_item_at((void *)btree, btree->root, index);
+    return btree_get_int(btree, key);
+}
+
+const void *btree_get_int(const btree *btree, const void *key)
+{
+    bool found = false;
+    // TODO: For now only look at the root.
+    size_t index = btree_search((void *)btree, btree->root, key, 0, &found);
+    if (found)
+    {
+        return btree_get_item_at((void *)btree, btree->root, index);
+    }
+
+    return NULL;
 }
