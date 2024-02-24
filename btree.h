@@ -57,6 +57,8 @@ static btree_result btree_insert_result(btree *btree, bnode *node, const void *i
 
 static size_t btree_search(btree *btree, bnode *node, const void *item, int depth, bool *found);
 
+static void btree_shift_items(btree *btree, bnode *node, size_t index);
+
 const void *btree_get(const btree *btree, const void *key, size_t index);
 
 const void *btree_min(const btree *btree);

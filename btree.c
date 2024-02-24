@@ -112,14 +112,27 @@ static btree_result btree_insert_result(btree *btree, bnode *node, const void *i
 
     if (!found)
     {
-        printf("Not found!\n");
-        exit(EXIT_FAILURE);
+        if (node->nitems == btree->max_items)
+        {
+            return BTREE_SPLIT_NEEDED;
+        }
+
+        // TODO: Shift the items in the node.
+        btree_shift_items(btree, node, index);
+        btree_set_item_at(btree, node, index, item);
+        node->nitems++;
+
+        return BTREE_INSERTED;
     }
 
-    // TODO: For now just insert the node to the root.
-    btree_set_item_at(btree, node, index, item);
+    printf("I should not get here yet...");
+    exit(EXIT_FAILURE);
+}
 
-    return BTREE_INSERTED;
+static void btree_shift_items(btree *btree, bnode *node, size_t index)
+{
+    size_t to_shift = node->nitems - index;
+    memmove(node->items + btree->item_sz * (index + 1), node->items + btree->item_sz * index, to_shift * btree->item_sz);
 }
 
 static size_t btree_search(btree *btree, bnode *node, const void *item, int depth, bool *found)
@@ -130,29 +143,28 @@ static size_t btree_search(btree *btree, bnode *node, const void *item, int dept
 
     while (index < nitems)
     {
-        void *node_it = btree_get_item_at((void *)btree, node, index);
+        size_t sep = (index + nitems) / 2;
+        void *node_it = btree_get_item_at((void *)btree, node, sep);
 
         int cmp = btree->comparator((void *)item, node_it);
         if (cmp < 0) // new item is smaller
         {
-            printf("can't do that yet...\n");
-            exit(EXIT_FAILURE);
+            nitems = sep;
         }
         else if (cmp > 0)
         {
-            *found = true;
-            return index + 1;
+            index = sep + 1;
         }
         else
         {
-            printf("duplicate value is invalid\n");
-            exit(EXIT_FAILURE);
+            *found = true;
+            return sep;
         }
     }
 
     *found = false;
 
-    return 1;
+    return index;
 }
 
 static void *btree_get_item_at(btree *btree, bnode *node, size_t index)
