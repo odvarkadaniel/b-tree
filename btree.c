@@ -35,13 +35,12 @@ bnode *btree_new_node(btree *btree, bool leaf)
 {
     size_t size = sizeof(bnode);
     size += btree->item_sz * btree->max_items;
-    bnode *node = malloc(size);
+    bnode *node = calloc(size, size);
     if (!node)
     {
         return NULL;
     }
 
-    memset(node, 0, size);
     node->leaf = leaf;
     node->items = (char *)node + sizeof(bnode);
 
@@ -97,6 +96,8 @@ static void *btree_insert_int(btree *btree, const void *item)
     case BTREE_INSERTED:
         btree->count++;
         return NULL;
+    case BTREE_SPLIT_NEEDED:
+        break;
     default:
         printf("Failure on result: Should not happen.\n");
         exit(EXIT_FAILURE);
@@ -137,7 +138,6 @@ static void btree_shift_items(btree *btree, bnode *node, size_t index)
 
 static size_t btree_search(btree *btree, bnode *node, const void *item, int depth, bool *found)
 {
-    // *found = true;
     size_t index = 0;
     size_t nitems = node->nitems;
 
