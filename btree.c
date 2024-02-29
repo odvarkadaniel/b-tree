@@ -35,7 +35,13 @@ bnode *btree_new_node(btree *btree, bool leaf)
 {
     size_t size = sizeof(bnode);
     size += btree->item_sz * btree->max_items;
-    bnode *node = calloc(size, size);
+
+    if (!leaf)
+    {
+        size += sizeof(bnode *) * (btree->max_items + 1);
+    }
+
+    bnode *node = calloc(1, size);
     if (!node)
     {
         return NULL;
@@ -65,6 +71,27 @@ const void *btree_insert(btree *btree, const void *item)
     return btree_insert_int(btree, item);
 }
 
+static void btree_split(btree *btree, bnode *old_root, bnode **right, void **median)
+{
+    *right = btree_new_node(btree, old_root->leaf);
+    if (!*right)
+    {
+        return;
+    }
+
+    int mid_pos = (int)btree->max_items / 2;
+    *median = btree_get_item_at(btree, old_root, (size_t)mid_pos);
+
+    printf("MEDIAN_POS: %d\n", mid_pos);
+
+    (*right)->leaf = old_root->leaf;
+    (*right)->nitems = old_root->nitems - (mid_pos + 1);
+    memmove((*right)->items, old_root->items + (int)btree->item_sz * (mid_pos + 1),
+            (size_t)(*right)->nitems * btree->item_sz);
+
+    old_root->nitems = mid_pos;
+}
+
 static void *btree_insert_int(btree *btree, const void *item)
 {
     if (!btree->root)
@@ -83,24 +110,43 @@ static void *btree_insert_int(btree *btree, const void *item)
         return NULL;
     }
 
-    // TODO: In this case:
-    // 1. We have atleast one node in the tree
-    // 1a. With this insertion, we might need to
-    //     either split the node, or we can just insert.
-    // 2. Split the node if needed -> rotate
-
-    // Start looking from the root.
-    btree_result result = btree_insert_result(btree, btree->root, item, 0);
-    switch (result)
+    while (true)
     {
-    case BTREE_INSERTED:
-        btree->count++;
-        return NULL;
-    case BTREE_SPLIT_NEEDED:
+        btree_result result = btree_insert_result(btree, btree->root, item, 0);
+        switch (result)
+        {
+        case BTREE_INSERTED:
+            btree->count++;
+            return NULL;
+        }
+
+        printf("I AM HERE\n");
+        void *old_root = btree->root;
+        bnode *new_root = btree_new_node(btree, false);
+        if (!new_root)
+        {
+            printf("error - should not happen alloc\n");
+        }
+        bnode *right = NULL;
+        void *median = NULL;
+        btree_split(btree, old_root, &right, &median);
+        if (!right)
+        {
+            printf("jklasjdkasld\n");
+            return NULL;
+        }
+        btree->root = new_root;
+        btree->root->children[0] = old_root;
+        printf("ch01: %d\n", btree->root->children[0]->nitems);
+        // TODO: Set the new item at correct place.
+        // btree_set_item_at(btree, btree->root->children[1], 0, item);
+        btree_set_item_at(btree, btree->root, 0, median);
+        btree->root->children[1] = right;
+        printf("ch11: %d\n", btree->root->children[1]->nitems);
+        btree->root->nitems = 1;
+        btree->height++;
+
         break;
-    default:
-        printf("Failure on result: Should not happen.\n");
-        exit(EXIT_FAILURE);
     }
 
     return NULL;
@@ -179,12 +225,33 @@ const void *btree_get(const btree *btree, const void *key)
 
 const void *btree_get_int(const btree *btree, const void *key)
 {
-    bool found = false;
-    // TODO: For now only look at the root.
-    size_t index = btree_search((void *)btree, btree->root, key, 0, &found);
-    if (found)
+    bnode *current = btree->root;
+    printf("Is root leaf: %d\n", current->leaf);
+    if (!current) // empty btree
     {
-        return btree_get_item_at((void *)btree, btree->root, index);
+        return NULL;
+    }
+
+    bool found = false;
+    int depth = 0;
+
+    while (true)
+    {
+        size_t index = btree_search((void *)btree, current, key, depth, &found);
+        if (found)
+        {
+            printf("Index: %d -- %d\n", index, current->leaf);
+            return btree_get_item_at((void *)btree, current, index);
+        }
+
+        if (current->leaf)
+        {
+            return NULL;
+        }
+
+        printf("Index: %d\n", index);
+        current = current->children[index];
+        depth++;
     }
 
     return NULL;

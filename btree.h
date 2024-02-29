@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-typedef struct
+typedef struct bnode
 {
     bool leaf;
     int nitems; // : 16; // or something else than 16
@@ -54,6 +54,8 @@ const void *btree_insert(btree *btree, const void *item);
 static void *btree_insert_int(btree *btree, const void *item);
 
 static btree_result btree_insert_result(btree *btree, bnode *node, const void *item, int depth);
+
+static void btree_split(btree *btree, bnode *old_root, bnode **right, void **median);
 
 static size_t btree_search(btree *btree, bnode *node, const void *item, int depth, bool *found);
 
