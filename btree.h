@@ -8,7 +8,7 @@
 typedef struct bnode
 {
     bool leaf;
-    int nitems; // : 16; // or something else than 16
+    int nitems;
     char *items;
     struct bnode *children[];
 } bnode;
@@ -35,6 +35,7 @@ typedef enum
 {
     BTREE_INSERTED,
     BTREE_SPLIT_NEEDED,
+    BTREE_REPLACED_ITEM,
 } btree_result;
 
 btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *));
