@@ -20,7 +20,7 @@ int cmp(const void *a, const void *b)
 
 int main()
 {
-    btree *btree = btree_new(sizeof(user), 3, cmp);
+    struct btree *btree = btree_new(sizeof(user), 3, cmp);
 
     btree_insert(btree, &(user){.id = 1, .name = "daniel1", .email = "email111@email111.com"});
     btree_insert(btree, &(user){.id = 2, .name = "daniel22", .email = "email12@email12.com"});

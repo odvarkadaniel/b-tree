@@ -4,10 +4,10 @@
 
 #include "btree.h"
 
-btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *))
+struct btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *))
 {
     size_t size = btree_fit_size(item_sz);
-    btree *btree = malloc(size);
+    struct btree *btree = malloc(size);
     if (!btree)
     {
         return NULL;
@@ -26,21 +26,21 @@ btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void 
 
 static size_t btree_fit_size(size_t item_sz)
 {
-    size_t size = (sizeof(btree));
+    size_t size = (sizeof(struct btree));
     size += item_sz;
     return size;
 }
 
-bnode *btree_new_node(btree *btree, bool leaf)
+struct bnode *btree_new_node(struct btree *btree, bool leaf)
 {
-    size_t size = sizeof(bnode);
+    size_t size = sizeof(struct bnode);
     size += btree->item_sz * btree->max_items;
 
     if (!leaf)
     {
-        size += sizeof(bnode *) * (btree->max_items + 1);
+        size += sizeof(struct bnode *) * (btree->max_items + 1);
     }
-    bnode *node = malloc(size);
+    struct bnode *node = malloc(size);
     if (!node)
     {
         return NULL;
@@ -48,25 +48,25 @@ bnode *btree_new_node(btree *btree, bool leaf)
 
     memset(node, 0, size);
     node->leaf = leaf;
-    node->items = (char *)node + sizeof(bnode);
+    node->items = (char *)node + sizeof(struct bnode);
 
     return node;
 }
 
-void btree_free(btree *btree)
+void btree_free(struct btree *btree)
 {
     free(btree->root);
     free(btree);
 }
 
-static void btree_set_item_at(btree *btree, bnode *node,
+static void btree_set_item_at(struct btree *btree, struct bnode *node,
                               size_t index, const void *item)
 {
     void *slot = btree_get_item_at(btree, node, index);
     memcpy(slot, item, btree->item_sz);
 }
 
-const void *btree_insert(btree *btree, const void *item)
+const void *btree_insert(struct btree *btree, const void *item)
 {
     return btree_insert_int(btree, item);
 }
@@ -78,7 +78,7 @@ typedef struct
     char *email;
 } user;
 
-static void btree_split(btree *btree, bnode *old_root, bnode **right, void **median)
+static void btree_split(struct btree *btree, struct bnode *old_root, struct bnode **right, void **median)
 {
     *right = btree_new_node(btree, old_root->leaf);
     if (!*right)
@@ -98,7 +98,7 @@ static void btree_split(btree *btree, bnode *old_root, bnode **right, void **med
     old_root->nitems = mid_pos;
 }
 
-static void *btree_insert_int(btree *btree, const void *item)
+static void *btree_insert_int(struct btree *btree, const void *item)
 {
     if (!btree->root)
     {
@@ -130,13 +130,13 @@ static void *btree_insert_int(btree *btree, const void *item)
             //     break;
         }
 
-        bnode *old_root = btree->root;
-        bnode *new_root = btree_new_node(btree, false);
+        struct bnode *old_root = btree->root;
+        struct bnode *new_root = btree_new_node(btree, false);
         if (!new_root)
         {
             printf("error - should not happen alloc\n");
         }
-        bnode *right = NULL;
+        struct bnode *right = NULL;
         void *median = NULL;
         btree_split(btree, old_root, &right, &median);
         if (!right)
@@ -160,13 +160,13 @@ static void *btree_insert_int(btree *btree, const void *item)
         btree->height++;
 
         // TODO: Remove the break
-        break;
+        // break;
     }
 
     return NULL;
 }
 
-static btree_result btree_insert_result(btree *btree, bnode *node, const void *item, int depth)
+static btree_result btree_insert_result(struct btree *btree, struct bnode *node, const void *item, int depth)
 {
     bool found = false;
     size_t index = btree_search(btree, node, item, depth, &found);
@@ -209,7 +209,7 @@ static btree_result btree_insert_result(btree *btree, bnode *node, const void *i
     exit(EXIT_FAILURE);
 }
 
-static void btree_shift_items(btree *btree, bnode *node, size_t index)
+static void btree_shift_items(struct btree *btree, struct bnode *node, size_t index)
 {
     size_t to_shift = node->nitems - index;
     memmove(node->items + btree->item_sz * (index + 1), node->items + btree->item_sz * index, to_shift * btree->item_sz);
@@ -218,7 +218,7 @@ static void btree_shift_items(btree *btree, bnode *node, size_t index)
     // if (!node->leaf) {}
 }
 
-static size_t btree_search(btree *btree, bnode *node, const void *item, int depth, bool *found)
+static size_t btree_search(struct btree *btree, struct bnode *node, const void *item, int depth, bool *found)
 {
     size_t index = 0;
     size_t nitems = node->nitems;
@@ -249,19 +249,19 @@ static size_t btree_search(btree *btree, bnode *node, const void *item, int dept
     return index;
 }
 
-static void *btree_get_item_at(btree *btree, bnode *node, size_t index)
+static void *btree_get_item_at(struct btree *btree, struct bnode *node, size_t index)
 {
     return node->items + btree->item_sz * index;
 }
 
-const void *btree_get(const btree *btree, const void *key)
+const void *btree_get(const struct btree *btree, const void *key)
 {
     return btree_get_int(btree, key);
 }
 
-const void *btree_get_int(const btree *btree, const void *key)
+const void *btree_get_int(const struct btree *btree, const void *key)
 {
-    bnode *current = btree->root;
+    struct bnode *current = btree->root;
     if (!current) // empty btree
     {
         return NULL;
