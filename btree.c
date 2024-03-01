@@ -59,9 +59,22 @@ struct bnode *btree_new_node(struct btree *btree, bool leaf)
     return node;
 }
 
+static void btree_free_int(struct bnode *node)
+{
+    if (!node->leaf)
+    {
+        for (size_t i = 0; i < (size_t)(node->nitems + 1); i++)
+        {
+            btree_free_int(node->children[i]);
+        }
+    }
+    free(node);
+}
+
 void btree_free(struct btree *btree)
 {
-    free(btree->root);
+    if (btree->root)
+        btree_free_int(btree->root);
     free(btree);
 }
 
@@ -92,6 +105,11 @@ static void btree_split(struct btree *btree, struct bnode *node, struct bnode **
     (*right)->nitems = node->nitems - (mid_pos + 1);
     memmove((*right)->items, node->items + (int)btree->item_sz * (mid_pos + 1),
             (size_t)(*right)->nitems * btree->item_sz);
+
+    if (!node->leaf)
+    {
+        // TODO: Figure this out
+    }
 
     node->nitems = mid_pos;
 }
@@ -202,7 +220,10 @@ static void btree_shift_items(struct btree *btree, struct bnode *node, size_t in
     memmove(node->items + btree->item_sz * (index + 1), node->items + btree->item_sz * index, to_shift * btree->item_sz);
 
     // TODO: What about this?
-    // if (!node->leaf) {}
+    if (!node->leaf)
+    {
+        // TODO: Figure this out.
+    }
 }
 
 static size_t btree_search(struct btree *btree, struct bnode *node, const void *item, int depth, bool *found)

@@ -43,6 +43,8 @@ static size_t btree_fit_size(size_t item_sz);
 
 struct bnode *btree_new_node(struct btree *btree, bool leaf);
 
+static void btree_free_int(struct bnode *node);
+
 void btree_free(struct btree *btree);
 
 void btree_clear(struct btree *btree);
