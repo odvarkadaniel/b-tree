@@ -44,31 +44,25 @@ int main()
     btree_insert(btree, &(user){.id = 8, .name = "daniel8", .email = "email321@email15.com"});
     btree_insert(btree, &(user){.id = 9, .name = "daniel9", .email = "email321@email15.com"});
     btree_insert(btree, &(user){.id = 10, .name = "daniel10", .email = "email321@email15.com"});
-
-    // bnode *current = btree->root;
-    // const user *us;
-    // const user *us1;
-
-    // for (size_t i = 0; i < current->nitems; i++)
-    // {
-    //     us = (user *)current->items + sizeof(user) * i;
-    //     if (!us)
-    //     {
-    //         printf("NULL\n");
-    //         exit(EXIT_FAILURE);
-    //     }
-
-    //     printf("Item: %d - %s - %s\n", us->id, us->name, us->email);
-    //     bnode *ch = current->children[0];
-    //     if (!ch)
-    //     {
-    //         printf("CHILD IS NULL\n");
-    //         exit(EXIT_FAILURE);
-    //     }
-    //     printf("Child: %d -- %d\n", ch->leaf, ch->nitems);
-    //     us1 = (user *)ch->items + sizeof(user) * 0;
-    //     printf("Item: %d - %s - %s\n", us1->id, us1->name, us1->email);
-    // }
+    btree_insert(btree, &(user){.id = 11, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 12, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 13, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 14, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 15, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 16, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 17, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 18, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 19, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 20, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 21, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 22, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 312, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 1423, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 123, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 12142, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 510, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 2410, .name = "daniel10", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 8910, .name = "daniel10", .email = "email321@email15.com"});
 
     const user *us1;
     us1 = btree_get(btree, &(user){.id = 1});
@@ -110,7 +104,15 @@ int main()
     us0 = btree_get(btree, &(user){.id = 10});
     printf("Root: %d - %s - %s\n", us0->id, us0->name, us0->email);
 
-    // printf("%d - %d - %d - %d - %d\n", btree->root->nitems, btree->root->children[0]->nitems, btree->root->children[1]->nitems, btree->root->children[2]->nitems, btree->root->children[3]->nitems);
+    printf("Height: %lu\n", btree->height);
+
+    const user *max;
+    max = btree_max(btree);
+    printf("Max: %d - %s - %s\n", max->id, max->name, max->email);
+
+    const user *min;
+    min = btree_min(btree);
+    printf("Min: %d - %s - %s\n", min->id, min->name, min->email);
 
     btree_free(btree);
 }

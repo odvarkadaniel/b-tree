@@ -301,3 +301,25 @@ bool btree_has(const struct btree *btree, const void *key)
 {
     return (!btree_get_int(btree, key)) ? false : true;
 }
+
+const void *btree_max(const struct btree *btree)
+{
+    struct bnode *current = btree->root;
+    while (!current->leaf)
+    {
+        current = current->children[current->nitems];
+    }
+
+    return btree_get_item_at((void *)btree, current, current->nitems - 1);
+}
+
+const void *btree_min(const struct btree *btree)
+{
+    struct bnode *current = btree->root;
+    while (!current->leaf)
+    {
+        current = current->children[0];
+    }
+
+    return btree_get_item_at((void *)btree, current, 0);
+}
