@@ -34,7 +34,7 @@ static size_t btree_fit_size(size_t item_sz)
     return size;
 }
 
-struct bnode *btree_new_node(struct btree *btree, bool leaf)
+static struct bnode *btree_new_node(struct btree *btree, bool leaf)
 {
     size_t size = sizeof(struct bnode);
 
@@ -108,9 +108,11 @@ static void btree_split(struct btree *btree, struct bnode *node, struct bnode **
 
     if (!node->leaf)
     {
-        // TODO: Figure this out
+        for (size_t i = 0; i < (*right)->nitems + 1; i++)
+        {
+            (*right)->children[i] = (*right)->children[mid_pos + i + 1];
+        }
     }
-
     node->nitems = mid_pos;
 }
 
@@ -202,16 +204,28 @@ static btree_result btree_insert_result(struct btree *btree, struct bnode *node,
     {
     case BTREE_INSERTED:
         return result;
-    default:
-        break;
     }
+
     if (node->nitems == btree->max_items)
     {
         return BTREE_SPLIT_NEEDED;
     }
 
-    printf("I should not get here yet...");
-    exit(EXIT_FAILURE);
+    void *median = NULL;
+    struct bnode *right = NULL;
+    btree_split(btree, node->children[index], &right, &median);
+    if (!right)
+    {
+        printf("this shouldn't happen\n");
+        exit(EXIT_FAILURE);
+    }
+
+    btree_shift_items(btree, node, index);
+    btree_set_item_at(btree, node, index, median);
+    node->nitems++;
+    node->children[index + 1] = right;
+
+    return btree_insert_result(btree, node, item, depth);
 }
 
 static void btree_shift_items(struct btree *btree, struct bnode *node, size_t index)
@@ -219,10 +233,9 @@ static void btree_shift_items(struct btree *btree, struct bnode *node, size_t in
     size_t to_shift = node->nitems - index;
     memmove(node->items + btree->item_sz * (index + 1), node->items + btree->item_sz * index, to_shift * btree->item_sz);
 
-    // TODO: What about this?
     if (!node->leaf)
     {
-        // TODO: Figure this out.
+        memmove(&node->children[index + 1], &node->children[index], (to_shift + 1) * sizeof(struct bnode *));
     }
 }
 
@@ -267,7 +280,7 @@ const void *btree_get(const struct btree *btree, const void *key)
     return btree_get_int(btree, key);
 }
 
-const void *btree_get_int(const struct btree *btree, const void *key)
+static const void *btree_get_int(const struct btree *btree, const void *key)
 {
     struct bnode *current = btree->root;
     if (!current) // empty btree

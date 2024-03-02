@@ -41,13 +41,11 @@ struct btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(cons
 
 static size_t btree_fit_size(size_t item_sz);
 
-struct bnode *btree_new_node(struct btree *btree, bool leaf);
+static struct bnode *btree_new_node(struct btree *btree, bool leaf);
 
 static void btree_free_int(struct bnode *node);
 
 void btree_free(struct btree *btree);
-
-void btree_clear(struct btree *btree);
 
 static void *btree_get_item_at(struct btree *btree, struct bnode *node, size_t index);
 
@@ -65,7 +63,7 @@ static void btree_shift_items(struct btree *btree, struct bnode *node, size_t in
 
 const void *btree_get(const struct btree *btree, const void *key);
 
-const void *btree_get_int(const struct btree *btree, const void *key);
+static const void *btree_get_int(const struct btree *btree, const void *key);
 
 const void *btree_min(const struct btree *btree);
 
