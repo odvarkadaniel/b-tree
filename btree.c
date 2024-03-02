@@ -133,7 +133,7 @@ static void *btree_insert_int(struct btree *btree, const void *item)
 
     while (true)
     {
-        btree_result result = btree_insert_result(btree, btree->root, item, 0);
+        enum btree_result result = btree_insert_result(btree, btree->root, item, 0);
         switch (result)
         {
         case BTREE_INSERTED:
@@ -167,7 +167,7 @@ static void *btree_insert_int(struct btree *btree, const void *item)
     }
 }
 
-static btree_result btree_insert_result(struct btree *btree, struct bnode *node, const void *item, int depth)
+static enum btree_result btree_insert_result(struct btree *btree, struct bnode *node, const void *item, int depth)
 {
     bool found = false;
     size_t index = btree_search(btree, node, item, depth, &found);
@@ -185,14 +185,14 @@ static btree_result btree_insert_result(struct btree *btree, struct bnode *node,
             return BTREE_SPLIT_NEEDED;
         }
 
-        btree_shift_items(btree, node, index);
+        btree_shift_forward(btree, node, index);
         btree_set_item_at(btree, node, index, item);
         node->nitems++;
 
         return BTREE_INSERTED;
     }
 
-    btree_result result = btree_insert_result(btree, node->children[index], item, depth + 1);
+    enum btree_result result = btree_insert_result(btree, node->children[index], item, depth + 1);
     switch (result)
     {
     case BTREE_INSERTED:
@@ -213,7 +213,7 @@ static btree_result btree_insert_result(struct btree *btree, struct bnode *node,
         exit(EXIT_FAILURE);
     }
 
-    btree_shift_items(btree, node, index);
+    btree_shift_forward(btree, node, index);
     btree_set_item_at(btree, node, index, median);
     node->nitems++;
     node->children[index + 1] = right;
@@ -221,7 +221,7 @@ static btree_result btree_insert_result(struct btree *btree, struct bnode *node,
     return btree_insert_result(btree, node, item, depth);
 }
 
-static void btree_shift_items(struct btree *btree, struct bnode *node, size_t index)
+static void btree_shift_forward(struct btree *btree, struct bnode *node, size_t index)
 {
     size_t to_shift = node->nitems - index;
     memmove(node->items + btree->item_sz * (index + 1), node->items + btree->item_sz * index, to_shift * btree->item_sz);
@@ -284,6 +284,7 @@ static const void *btree_get_int(const struct btree *btree, const void *key)
         size_t index = btree_search((void *)btree, current, key, depth, &found);
         if (found)
         {
+            printf("Index: %lu\n", index);
             return btree_get_item_at((void *)btree, current, index);
         }
 
@@ -295,6 +296,55 @@ static const void *btree_get_int(const struct btree *btree, const void *key)
         current = current->children[index];
         depth++;
     }
+}
+
+const void *btree_remove(const struct btree *btree, const void *key)
+{
+    return btree_remove_int(btree, key);
+}
+
+static const void *btree_remove_int(const struct btree *btree, const void *key)
+{
+    if (!btree->root)
+    {
+        return NULL;
+    }
+
+    enum btree_result result;
+    while (true)
+    {
+        result = btree_remove_result((void *)btree, btree->root, key, 0);
+        if (result == BTREE_REMOVED)
+        {
+            return NULL;
+        }
+    }
+}
+
+static enum btree_result btree_remove_result(struct btree *btree, struct bnode *node, const void *key, int depth)
+{
+    // TODO: For now just take care of root only btrees.
+    bool found = false;
+    size_t index = btree_search(btree, node, key, 0, &found);
+
+    if (found) // we can delete
+    {
+        // item = btree_get_item_at(btree, node, index);
+        btree_shift_backward(btree, node, index);
+        node->nitems--;
+
+        return BTREE_REMOVED;
+    }
+    else
+    {
+        printf("Nothing to delete - handle that later\n");
+    }
+}
+
+static void btree_shift_backward(struct btree *btree, struct bnode *node, size_t index)
+{
+    size_t to_shift = (size_t)node->nitems - (index + 1);
+    memmove(node->items + btree->item_sz * index, node->items + btree->item_sz * ((size_t)node->nitems - to_shift), btree->item_sz * to_shift);
 }
 
 bool btree_has(const struct btree *btree, const void *key)

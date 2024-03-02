@@ -32,12 +32,14 @@ struct btree
     size_t min_items;   // min items allowed per node to join
 };
 
-typedef enum
+enum btree_result
 {
     BTREE_INSERTED,
     BTREE_SPLIT_NEEDED,
     BTREE_REPLACED_ITEM,
-} btree_result;
+    BTREE_REMOVED,
+    BTREE_REBALANCE_NEEDED,
+};
 
 struct btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *));
 
@@ -55,17 +57,25 @@ const void *btree_insert(struct btree *btree, const void *item);
 
 static void *btree_insert_int(struct btree *btree, const void *item);
 
-static btree_result btree_insert_result(struct btree *btree, struct bnode *node, const void *item, int depth);
+static enum btree_result btree_insert_result(struct btree *btree, struct bnode *node, const void *item, int depth);
 
 static void btree_split(struct btree *btree, struct bnode *old_root, struct bnode **right, void **median);
 
 static size_t btree_search(struct btree *btree, struct bnode *node, const void *item, int depth, bool *found);
 
-static void btree_shift_items(struct btree *btree, struct bnode *node, size_t index);
+static void btree_shift_forward(struct btree *btree, struct bnode *node, size_t index);
 
 const void *btree_get(const struct btree *btree, const void *key);
 
 static const void *btree_get_int(const struct btree *btree, const void *key);
+
+const void *btree_remove(const struct btree *btree, const void *key);
+
+static const void *btree_remove_int(const struct btree *btree, const void *key);
+
+static enum btree_result btree_remove_result(struct btree *btree, struct bnode *node, const void *key, int depth);
+
+static void btree_shift_backward(struct btree *btree, struct bnode *node, size_t index);
 
 bool btree_has(const struct btree *btree, const void *key);
 
