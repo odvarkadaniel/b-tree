@@ -28,6 +28,22 @@ int main()
 
     // This procs the split of the root node.
     btree_insert(btree, &(user){.id = 3, .name = "daniel333", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 5, .name = "daniel5", .email = "email5@email15.com"});
+
+    // This procs the split of a child node at index 1
+    // Before:
+    //          2
+    //         / \
+    //        1   3 | 4 | 5
+    // After this, the tree should look like this:
+    //          2 | 4
+    //         / \   \
+    //        1   3   5 | 6
+    btree_insert(btree, &(user){.id = 6, .name = "daniel6", .email = "email6@email15.com"});
+    btree_insert(btree, &(user){.id = 7, .name = "daniel7", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 8, .name = "daniel8", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 9, .name = "daniel9", .email = "email321@email15.com"});
+    btree_insert(btree, &(user){.id = 10, .name = "daniel10", .email = "email321@email15.com"});
 
     // bnode *current = btree->root;
     // const user *us;
@@ -69,6 +85,32 @@ int main()
     const user *us4;
     us4 = btree_get(btree, &(user){.id = 4});
     printf("Root: %d - %s - %s\n", us4->id, us4->name, us4->email);
+
+    const user *us5;
+    us5 = btree_get(btree, &(user){.id = 5});
+    printf("Root: %d - %s - %s\n", us5->id, us5->name, us5->email);
+
+    const user *us6;
+    us6 = btree_get(btree, &(user){.id = 6});
+    printf("Root: %d - %s - %s\n", us6->id, us6->name, us6->email);
+
+    const user *us7;
+    us7 = btree_get(btree, &(user){.id = 7});
+    printf("Root: %d - %s - %s\n", us7->id, us7->name, us7->email);
+
+    const user *us8;
+    us8 = btree_get(btree, &(user){.id = 8});
+    printf("Root: %d - %s - %s\n", us8->id, us8->name, us8->email);
+
+    const user *us9;
+    us9 = btree_get(btree, &(user){.id = 9});
+    printf("Root: %d - %s - %s\n", us9->id, us9->name, us9->email);
+
+    const user *us0;
+    us0 = btree_get(btree, &(user){.id = 10});
+    printf("Root: %d - %s - %s\n", us0->id, us0->name, us0->email);
+
+    // printf("%d - %d - %d - %d - %d\n", btree->root->nitems, btree->root->children[0]->nitems, btree->root->children[1]->nitems, btree->root->children[2]->nitems, btree->root->children[3]->nitems);
 
     btree_free(btree);
 }

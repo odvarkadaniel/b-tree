@@ -7,13 +7,11 @@
 struct btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *))
 {
     size_t size = btree_fit_size(item_sz);
-    struct btree *btree = malloc(size);
+    struct btree *btree = calloc(1, size);
     if (!btree)
     {
         return NULL;
     }
-
-    memset(btree, 0, size);
 
     btree->item_sz = item_sz;
     btree->count = 0;
@@ -46,13 +44,12 @@ static struct bnode *btree_new_node(struct btree *btree, bool leaf)
     size_t offset_items = size;
     size += btree->item_sz * btree->max_items;
 
-    struct bnode *node = malloc(size);
+    struct bnode *node = calloc(1, size);
     if (!node)
     {
         return NULL;
     }
 
-    memset(node, 0, size);
     node->leaf = leaf;
     node->items = (char *)node + offset_items;
 
@@ -110,7 +107,7 @@ static void btree_split(struct btree *btree, struct bnode *node, struct bnode **
     {
         for (size_t i = 0; i < (*right)->nitems + 1; i++)
         {
-            (*right)->children[i] = (*right)->children[mid_pos + i + 1];
+            (*right)->children[i] = node->children[mid_pos + i + 1];
         }
     }
     node->nitems = mid_pos;
@@ -144,8 +141,6 @@ static void *btree_insert_int(struct btree *btree, const void *item)
             return NULL;
         case BTREE_REPLACED_ITEM:
             return NULL;
-            // case BTREE_SPLIT_NEEDED:
-            //     break;
         }
 
         struct bnode *old_root = btree->root;
@@ -170,8 +165,6 @@ static void *btree_insert_int(struct btree *btree, const void *item)
         btree->root->children[1] = right;
         btree->height++;
     }
-
-    return NULL;
 }
 
 static btree_result btree_insert_result(struct btree *btree, struct bnode *node, const void *item, int depth)
@@ -232,11 +225,6 @@ static void btree_shift_items(struct btree *btree, struct bnode *node, size_t in
 {
     size_t to_shift = node->nitems - index;
     memmove(node->items + btree->item_sz * (index + 1), node->items + btree->item_sz * index, to_shift * btree->item_sz);
-
-    if (!node->leaf)
-    {
-        memmove(&node->children[index + 1], &node->children[index], (to_shift + 1) * sizeof(struct bnode *));
-    }
 }
 
 static size_t btree_search(struct btree *btree, struct bnode *node, const void *item, int depth, bool *found)
