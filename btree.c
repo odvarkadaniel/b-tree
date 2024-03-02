@@ -296,3 +296,8 @@ static const void *btree_get_int(const struct btree *btree, const void *key)
         depth++;
     }
 }
+
+bool btree_has(const struct btree *btree, const void *key)
+{
+    return (!btree_get_int(btree, key)) ? false : true;
+}

@@ -22,6 +22,8 @@ struct btree
 
     int (*comparator)(const void *, const void *);
 
+    void (*formatter)(const struct btree *);
+
     size_t count;       // number of items in the tree
     size_t height;      // height of the tree
     struct bnode *root; // root of the tree
@@ -64,6 +66,8 @@ static void btree_shift_items(struct btree *btree, struct bnode *node, size_t in
 const void *btree_get(const struct btree *btree, const void *key);
 
 static const void *btree_get_int(const struct btree *btree, const void *key);
+
+bool btree_has(const struct btree *btree, const void *key);
 
 const void *btree_min(const struct btree *btree);
 
