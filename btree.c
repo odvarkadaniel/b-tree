@@ -4,6 +4,48 @@
 
 #include "btree.h"
 
+// btree_fit_size computes the size of the b-tree.
+static size_t btree_fit_size(size_t item_sz);
+
+// btree_new_node creates a new node.
+// The node's size depends on whether the node is a leaf or not.
+// If the node is a leaf, we allocate extra memory for its children.
+static struct bnode *btree_new_node(struct btree *btree, bool leaf);
+
+// btree_free_int is an internal function to free memory of the whole b-tree.
+static void btree_free_int(struct bnode *node);
+
+// btree_get_item_at returns a pointer to memory where an item at a particular index lives.
+static void *btree_get_item_at(struct btree *btree, struct bnode *node, size_t index);
+
+// btree_insert_int is an internal function to insert an item into the b-tree.
+static void *btree_insert_int(struct btree *btree, const void *item);
+
+// btree_insert_result determines what step can be currently done in order to successfully insert an item.
+static enum btree_result btree_insert_result(struct btree *btree, struct bnode *node, const void *item, int depth);
+
+// btree_split splits a node.
+// In more detail, it moves items from old_root into right and also finds a median in the old_root node.
+static void btree_split(struct btree *btree, struct bnode *old_root, struct bnode **right, void **median);
+
+// btree_search looks for an item using a binary-search algorithm.
+static size_t btree_search(struct btree *btree, struct bnode *node, const void *item, int depth, bool *found);
+
+// btree_shift_forward shifts a certain amount of items to the right side of a node.
+static void btree_shift_forward(struct btree *btree, struct bnode *node, size_t index);
+
+// btree_get_int is an internal function to get an item from the b-tree.
+static const void *btree_get_int(const struct btree *btree, const void *key);
+
+// btree_remove_int is an internal function to remove an item from the b-tree.
+static const void *btree_remove_int(const struct btree *btree, const void *key);
+
+// btree_remove_result determines what step can be currently done in order to successfully remove an item.
+static enum btree_result btree_remove_result(struct btree *btree, struct bnode *node, const void *key, int depth);
+
+// btree_shift_backward shifts a certain amount of items to the left side of a node.
+static void btree_shift_backward(struct btree *btree, struct bnode *node, size_t index);
+
 struct btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *))
 {
     size_t size = btree_fit_size(item_sz);
@@ -134,14 +176,23 @@ static void *btree_insert_int(struct btree *btree, const void *item)
     while (true)
     {
         enum btree_result result = btree_insert_result(btree, btree->root, item, 0);
-        switch (result)
+        if (result == BTREE_INSERTED)
         {
-        case BTREE_INSERTED:
             btree->count++;
             return NULL;
-        case BTREE_REPLACED_ITEM:
+        }
+        else if (result == BTREE_REPLACED_ITEM)
+        {
             return NULL;
         }
+        // switch (result)
+        // {
+        // case BTREE_INSERTED:
+        // btree->count++;
+        // return NULL;
+        // case BTREE_REPLACED_ITEM:
+        // return NULL;
+        // }
 
         struct bnode *old_root = btree->root;
         struct bnode *new_root = btree_new_node(btree, false);
@@ -193,11 +244,15 @@ static enum btree_result btree_insert_result(struct btree *btree, struct bnode *
     }
 
     enum btree_result result = btree_insert_result(btree, node->children[index], item, depth + 1);
-    switch (result)
+    if (result == BTREE_INSERTED)
     {
-    case BTREE_INSERTED:
         return result;
     }
+    // switch (result)
+    // {
+    // case BTREE_INSERTED:
+    //     return result;
+    // }
 
     if (node->nitems == btree->max_items)
     {
@@ -339,6 +394,9 @@ static enum btree_result btree_remove_result(struct btree *btree, struct bnode *
     {
         printf("Nothing to delete - handle that later\n");
     }
+
+    // TODO: Just a placeholder value for now.
+    return BTREE_REMOVED;
 }
 
 static void btree_shift_backward(struct btree *btree, struct bnode *node, size_t index)

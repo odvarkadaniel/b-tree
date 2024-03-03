@@ -41,48 +41,39 @@ enum btree_result
     BTREE_REBALANCE_NEEDED,
 };
 
+// btree_new creates a new instance of a b-tree structure.
 struct btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *));
 
-static size_t btree_fit_size(size_t item_sz);
-
-static struct bnode *btree_new_node(struct btree *btree, bool leaf);
-
-static void btree_free_int(struct bnode *node);
-
+// btree_free frees the whole b-tree structure from memory.
 void btree_free(struct btree *btree);
 
-static void *btree_get_item_at(struct btree *btree, struct bnode *node, size_t index);
-
+// btree_insert either inserts or replaces an item in the b-tree.
+// If an item gets replaced, we return the old item.
+// If an item gets inserted, we return NULL, if everything goes well.
 const void *btree_insert(struct btree *btree, const void *item);
 
-static void *btree_insert_int(struct btree *btree, const void *item);
-
-static enum btree_result btree_insert_result(struct btree *btree, struct bnode *node, const void *item, int depth);
-
-static void btree_split(struct btree *btree, struct bnode *old_root, struct bnode **right, void **median);
-
-static size_t btree_search(struct btree *btree, struct bnode *node, const void *item, int depth, bool *found);
-
-static void btree_shift_forward(struct btree *btree, struct bnode *node, size_t index);
-
+// btree_get tries to find an item by a key.
+// If an item is found, we return the item.
+// If an item doesn't get found, we return NULL.
 const void *btree_get(const struct btree *btree, const void *key);
 
-static const void *btree_get_int(const struct btree *btree, const void *key);
-
+// btree_remove removes an item from the b-tree.
+// If an item is removed successfully, we return NULL.
+// TODO: Change this if we move forward with returning the old item on succession.
 const void *btree_remove(const struct btree *btree, const void *key);
 
-static const void *btree_remove_int(const struct btree *btree, const void *key);
-
-static enum btree_result btree_remove_result(struct btree *btree, struct bnode *node, const void *key, int depth);
-
-static void btree_shift_backward(struct btree *btree, struct bnode *node, size_t index);
-
+// btree_has looks for a key in the b-tree.
+// If an item is found, we return true, otherwise false.
 bool btree_has(const struct btree *btree, const void *key);
 
+// btree_min finds the smallest item in the b-tree.
 const void *btree_min(const struct btree *btree);
 
+// btree_max finds the biggest item in the b-tree.
 const void *btree_max(const struct btree *btree);
 
+// btree_print outputs the whole b-tree structure to stdout.
+// TODO: This or formatter?
 void btree_print(struct btree *btree);
 
 #endif // BTREE_H

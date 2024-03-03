@@ -30,15 +30,17 @@ int main()
     // btree_insert(btree, &(user){.id = 4, .name = "daniel15", .email = "email15@email15.com"});
     // btree_insert(btree, &(user){.id = 5, .name = "daniel5", .email = "email5@email15.com"});
 
-    // This procs the split of a child node at index 1
-    // Before:
-    //          2
-    //         / \
-    //        1   3 | 4 | 5
-    // After this, the tree should look like this:
-    //          2 | 4
-    //         / \   \
-    //        1   3   5 | 6
+    /*
+    This procs the split of a child node at index 1
+    Before:
+             2
+            / \
+           1   3 | 4 | 5
+    After this, the tree should look like this:
+             2 | 4
+            / \   \
+           1   3   5 | 6
+    */
     // btree_insert(btree, &(user){.id = 6, .name = "daniel6", .email = "email6@email15.com"});
     // btree_insert(btree, &(user){.id = 7, .name = "daniel7", .email = "email321@email15.com"});
     // btree_insert(btree, &(user){.id = 8, .name = "daniel8", .email = "email321@email15.com"});
