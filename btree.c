@@ -293,7 +293,7 @@ static size_t btree_search(struct btree *btree, struct bnode *node, const void *
         void *node_it = btree_get_item_at((void *)btree, node, sep);
 
         int cmp = btree->comparator((void *)item, node_it);
-        if (cmp < 0) // new item is smaller
+        if (cmp < 0)
         {
             nitems = sep;
         }
