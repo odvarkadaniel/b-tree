@@ -46,7 +46,10 @@ static enum btree_result btree_remove_result(struct btree *btree, struct bnode *
 // btree_shift_backward shifts a certain amount of items to the left side of a node.
 static void btree_shift_backward(struct btree *btree, struct bnode *node, size_t index);
 
-struct btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *))
+// btree_print_int is an internal function that prints the b-tree structure.
+static void btree_print_int(const struct btree  *btree, struct bnode *node, int indent);
+
+struct btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *), void (*formatter)(const void*))
 {
     size_t size = btree_fit_size(item_sz);
     struct btree *btree = calloc(1, size);
@@ -61,6 +64,7 @@ struct btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(cons
     btree->max_items = max_items;
     btree->min_items = max_items / 2;
     btree->comparator = comparator;
+    btree->formatter = formatter;
     btree->root = NULL;
 
     return btree;
@@ -430,4 +434,77 @@ const void *btree_min(const struct btree *btree)
     }
 
     return btree_get_item_at((void *)btree, current, 0);
+}
+
+void btree_print(const struct btree *btree)
+{
+    if (!btree->root)
+    {
+        printf("Empty b-tree\n");
+        return;
+    }
+
+    if (!btree->formatter)
+    {
+        printf("Formatter is not set\n");
+        return;
+    }
+
+    btree_print_int(btree, btree->root, 0);
+}
+
+static void btree_print_int(const struct btree  *btree, struct bnode *node, int indent)
+{
+    for (int i = 0; i < indent*2; i++)
+    {
+        printf(" ");
+    }
+
+    for (int i = 0; i < node->nitems; i++)
+    {
+        const void *item = btree_get_item_at((void*)btree, node, i);
+        btree->formatter(item);
+
+        if (i+1 != node->nitems)
+        {
+            printf(" | ");
+        }
+    }
+
+    printf("\n");
+    
+    if (node->leaf) return;
+
+    for (int i = 0; i <= node->nitems; i++)
+    {
+        btree_print_int(btree, node->children[i], indent+1);
+    }
+
+    // for (int idx = 0; idx < node->nitems; idx++)
+    // {
+    //     if (node->leaf)
+    //     {
+    //         return;
+    //     }
+
+    //     const void *item = btree_get_item_at((void*)btree, node, idx);
+    //     btree->formatter(item);
+
+
+        // if (idx+1 == node->nitems)
+        // {
+        //     if (node->leaf)
+        //     {
+        //         return;
+        //     }
+
+        //     for (int i = 0; i <= node->nitems; i++)
+        //     {
+        //         printf("\n");
+        //         btree_print_int(btree, node->children[i]);
+        //     }
+        // } else {
+        //     printf(" | ");
+        // }
+    // }
 }

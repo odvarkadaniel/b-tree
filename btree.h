@@ -22,7 +22,7 @@ struct btree
 
     int (*comparator)(const void *, const void *);
 
-    void (*formatter)(const struct btree *);
+    void (*formatter)(const void *);
 
     size_t count;       // number of items in the tree
     size_t height;      // height of the tree
@@ -41,8 +41,13 @@ enum btree_result
     BTREE_REBALANCE_NEEDED,
 };
 
+// struct btree_iterator
+// {
+//     // TODO: Figure out how we want to do this.
+// };
+
 // btree_new creates a new instance of a b-tree structure.
-struct btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *));
+struct btree *btree_new(size_t item_sz, size_t max_items, int (*comparator)(const void *, const void *), void (*formatter)(const void *));
 
 // btree_free frees the whole b-tree structure from memory.
 void btree_free(struct btree *btree);
@@ -74,6 +79,6 @@ const void *btree_max(const struct btree *btree);
 
 // btree_print outputs the whole b-tree structure to stdout.
 // TODO: This or formatter?
-void btree_print(struct btree *btree);
+void btree_print(const struct btree *btree);
 
 #endif // BTREE_H
